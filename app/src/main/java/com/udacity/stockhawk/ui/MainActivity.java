@@ -1,10 +1,14 @@
 package com.udacity.stockhawk.ui;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -17,7 +21,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.udacity.stockhawk.R;
 import com.udacity.stockhawk.data.Contract;
@@ -32,6 +35,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         SwipeRefreshLayout.OnRefreshListener,
         StockAdapter.StockAdapterOnClickHandler {
 
+    public static final String ERROR_MSG_BROADSCAST = "com.udacity.stockhawk.ERROR_MSG_BROADSCAST";
     private static final int STOCK_LOADER = 0;
     @SuppressWarnings("WeakerAccess")
     @BindView(R.id.recycler_view)
@@ -47,6 +51,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Override
     public void onClick(String symbol) {
         Timber.d("Symbol clicked: %s", symbol);
+        Intent launchChart = new Intent(this, StockChart.class);
+        launchChart.putExtra(StockChart.EXTRA_SYMBOL, symbol);
+        startActivity(launchChart);
     }
 
     @Override
@@ -78,10 +85,11 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 String symbol = adapter.getSymbolAtPosition(viewHolder.getAdapterPosition());
                 PrefUtils.removeStock(MainActivity.this, symbol);
                 getContentResolver().delete(Contract.Quote.makeUriForStock(symbol), null, null);
+                QuoteSyncJob.syncImmediately(getApplicationContext());
             }
         }).attachToRecyclerView(stockRecyclerView);
 
-
+        System.setProperty("yahoofinance.baseurl.histquotes", "https://ichart.yahoo.com/table.csv");
     }
 
     private boolean networkUp() {
@@ -102,7 +110,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             error.setVisibility(View.VISIBLE);
         } else if (!networkUp()) {
             swipeRefreshLayout.setRefreshing(false);
-            Toast.makeText(this, R.string.toast_no_connectivity, Toast.LENGTH_LONG).show();
+            Snackbar.make(findViewById(R.id.main_layout), R.string.toast_no_connectivity,
+                    Snackbar.LENGTH_SHORT)
+                    .show();
         } else if (PrefUtils.getStocks(this).size() == 0) {
             swipeRefreshLayout.setRefreshing(false);
             error.setText(getString(R.string.error_no_stocks));
@@ -123,11 +133,20 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 swipeRefreshLayout.setRefreshing(true);
             } else {
                 String message = getString(R.string.toast_stock_added_no_connectivity, symbol);
-                Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+
+                Snackbar.make(findViewById(R.id.main_layout), message,
+                        Snackbar.LENGTH_LONG)
+                        .show();
             }
 
-            PrefUtils.addStock(this, symbol);
-            QuoteSyncJob.syncImmediately(this);
+            if (PrefUtils.addStock(this, symbol)){
+                QuoteSyncJob.syncImmediately(this);
+            } else {
+                Snackbar.make(findViewById(R.id.main_layout), R.string.stock_already_on_list,
+                        Snackbar.LENGTH_LONG)
+                        .show();
+                swipeRefreshLayout.setRefreshing(false);
+            }
         }
     }
 
@@ -186,4 +205,29 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         }
         return super.onOptionsItemSelected(item);
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        IntentFilter mIntentFilter = new IntentFilter();
+        mIntentFilter.addAction(ERROR_MSG_BROADSCAST);
+        registerReceiver(mReceiver, mIntentFilter);
+    }
+
+    @Override
+    protected void onPause() {
+        unregisterReceiver(mReceiver);
+        super.onPause();
+    }
+
+    private BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(ERROR_MSG_BROADSCAST)) {
+                Snackbar.make(findViewById(R.id.main_layout), R.string.stock_not_found,
+                        Snackbar.LENGTH_LONG)
+                        .show();
+            }
+        }
+    };
 }

@@ -37,12 +37,16 @@ public final class PrefUtils {
 
     }
 
-    private static void editStockPref(Context context, String symbol, Boolean add) {
+    private static boolean editStockPref(Context context, String symbol, Boolean add) {
         String key = context.getString(R.string.pref_stocks_key);
         Set<String> stocks = getStocks(context);
 
         if (add) {
-            stocks.add(symbol);
+            if (!stocks.contains(symbol)) {
+                stocks.add(symbol);
+            } else {
+                return false;
+            }
         } else {
             stocks.remove(symbol);
         }
@@ -51,10 +55,12 @@ public final class PrefUtils {
         SharedPreferences.Editor editor = prefs.edit();
         editor.putStringSet(key, stocks);
         editor.apply();
+
+        return true;
     }
 
-    public static void addStock(Context context, String symbol) {
-        editStockPref(context, symbol, true);
+    public static boolean addStock(Context context, String symbol) {
+        return editStockPref(context, symbol, true);
     }
 
     public static void removeStock(Context context, String symbol) {
