@@ -8,6 +8,6 @@ If you're a Nanodegree student check your work againt the project [rubric](https
 
 # Final Results
 
-[[https://github.com/DavisJP/StockHawk/blob/master/device-2017-05-19-002146.png]]
-[[https://github.com/DavisJP/StockHawk/blob/master/device-2017-05-19-002310.png]]
-[[https://github.com/DavisJP/StockHawk/blob/master/device-2017-05-19-002359.png]]
+![alt tag](https://github.com/DavisJP/StockHawk/blob/master/device-2017-05-19-002146.png)
+![alt text](https://github.com/DavisJP/StockHawk/blob/master/device-2017-05-19-002310.png)
+![alt text](https://github.com/DavisJP/StockHawk/blob/master/device-2017-05-19-002359.png)
