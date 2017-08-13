@@ -6,6 +6,8 @@ Check out Udacity's [Advanced Android App Development](https://www.udacity.com/c
 
 If you're a Nanodegree student check your work againt the project [rubric](https://review.udacity.com/#!/rubrics/140/view), then click [here](https://classroom.udacity.com/nanodegrees/nd801/parts/8011345406/project) to submit your project.
 
-# Contrubuting
+# Final Results
 
-Pull requests gratefully accepted.
+![alt tag](https://github.com/DavisJP/StockHawk/blob/master/device-2017-05-19-002146.png)
+![alt text](https://github.com/DavisJP/StockHawk/blob/master/device-2017-05-19-002310.png)
+![alt text](https://github.com/DavisJP/StockHawk/blob/master/device-2017-05-19-002359.png)
